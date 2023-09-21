@@ -11,7 +11,7 @@ namespace MyLibrary {
 		std::stringstream buffer;
 		buffer << fstream.rdbuf();
 		return buffer.str();
-	}
+	};
 
 	unsigned int createShader(GLenum shaderType, const char* sourceCode) {
 		//Create a new vertex shader object
@@ -29,7 +29,7 @@ namespace MyLibrary {
 			printf("Failed to compile shader: %s", infoLog);
 		}
 		return shader;
-	}
+	};
 
 	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource) {
 		unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
@@ -52,7 +52,7 @@ namespace MyLibrary {
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
 		return shaderProgram;
-	}
+	};
 
 	Shader::Shader(const std::string& vertextShader, const std::string& fragmentShader) {
 		std::string vertexShaderSource = loadShaderSourceFromFile(vertextShader.c_str());
