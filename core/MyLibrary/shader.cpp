@@ -1,8 +1,7 @@
 #include "shader.h"
 #include <stdio.h>
-#include <sstream>
 #include <fstream>
-#include "../ew/external/glad.h"
+#include <sstream>
 
 namespace MyLibrary {
 	std::string loadShaderSourceFromFile(const std::string& filePath)
@@ -10,12 +9,11 @@ namespace MyLibrary {
 		std::ifstream fstream(filePath);
 		if (!fstream.is_open())
 		{
-			printf("Failed to load file %s", filePath);
+			printf("Failed to load file %s", filePath.c_str());
 			return {};
 		}
 		std::stringstream buffer;
 		buffer << fstream.rdbuf();
-
 		return buffer.str();
 	}
 
@@ -23,13 +21,10 @@ namespace MyLibrary {
 	{
 		//Create a new vertex shader object
 		unsigned int shader = glCreateShader(shaderType);
-
 		//Supply the shader object with source code
 		glShaderSource(shader, 1, &sourceCode, NULL);
-
 		//Compile the shader object
 		glCompileShader(shader);
-
 		int success;
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (!success)
@@ -39,21 +34,18 @@ namespace MyLibrary {
 			glGetShaderInfoLog(shader, 512, NULL, infoLog);
 			printf("Failed to compile shader: %s", infoLog);
 		}
-
 		return shader;
 	}
 
 	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource)
 	{
-		unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
-		unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+		unsigned int vertexShader = MyLibrary::createShader(GL_VERTEX_SHADER, vertexShaderSource);
+		unsigned int fragmentShader = MyLibrary::createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
 		unsigned int shaderProgram = glCreateProgram();
-
 		//Attach each stage
 		glAttachShader(shaderProgram, vertexShader);
 		glAttachShader(shaderProgram, fragmentShader);
-
 		//Link all the stages together
 		glLinkProgram(shaderProgram);
 		int success;
@@ -67,7 +59,6 @@ namespace MyLibrary {
 		//The linked program now contains our compiled code, so we can delete these intermediate objects
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
-
 		return shaderProgram;
 	}
 
@@ -81,12 +72,11 @@ namespace MyLibrary {
 		unsigned int vbo;
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
 		//Allocate space for + send vertex data to GPU.
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * numVertices * 3, vertexData, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, vertexData, GL_STATIC_DRAW);
 
 		//Position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, x));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)0);
 		glEnableVertexAttribArray(0);
 
 		//UV attribute
@@ -101,9 +91,9 @@ namespace MyLibrary {
 		return vao;
 	}
 
-	Shader::Shader(const std::string& vertextShader, const std::string& fragmentShader)
+	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader)
 	{
-		std::string vertexShaderSource = loadShaderSourceFromFile(vertextShader.c_str());
+		std::string vertexShaderSource = loadShaderSourceFromFile(vertexShader.c_str());
 		std::string fragmentShaderSource = loadShaderSourceFromFile(fragmentShader.c_str());
 		m_id = createShaderProgram(vertexShaderSource.c_str(), fragmentShaderSource.c_str());
 	}
@@ -137,5 +127,4 @@ namespace MyLibrary {
 	{
 		glUniform4f(glGetUniformLocation(m_id, name.c_str()), x, y, z, w);
 	}
-
 }
