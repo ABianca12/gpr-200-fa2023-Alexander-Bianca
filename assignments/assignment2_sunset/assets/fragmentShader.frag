@@ -1,53 +1,77 @@
 #version 450
 out vec4 FragColor;
+in vec3 Color;
 in vec2 UV;
-uniform float iTime;
-uniform vec3 BGColor;
-uniform float sunSpeed;
-uniform vec3 sunColor;
-uniform float hillSpeed;
-uniform vec3 hillGrassColor;
-uniform float stripesSpeed;
-uniform vec3 stripesColor;
-uniform vec2 iResolution;
 
-float circleSDF(vec2 p, float r)
+uniform vec3 _BGTopColor;
+uniform vec3 _BGBottomColor;
+
+uniform vec3 _SunRisingColor;
+uniform vec3 _SunSettingColor;
+uniform float _SunSpeed;
+
+uniform vec3 _HillGrassColor;
+uniform vec3 _Hill2Color;
+uniform float _HillSpeed;
+
+uniform vec3 _StripesColor;
+uniform float _StripesSpeed;
+
+uniform float _Time;
+uniform vec2 _Resolution;
+
+void main()
 {
-	return length(p) - r;
-}
+    // Sun variables
+    vec2 sunPos = vec2(0.5, 0.5);
+    float sunRange = 0.5;
+    float sunRadius = 0.2;
+    
+    // Hill variables
+    float hillFrequency = 10.0;
+    float hillHeight = 0.4;
+    float hillGrade = 0.08;
+    
+    float smoothing = 0.02;
+    float brightness = 0.5;
+    vec2 _UV = UV;
 
-void mainImage (out vec4 fragColor, in vec2 fragCoord)
-{
-    float radius = 0.1;
+    float aspectRatio = _Resolution.x/_Resolution.y;
+    _UV.x *= aspectRatio;
+    
+    // Sun objects
+    sunPos.y = sin(_Time * _SunSpeed) * sunRange + sunPos.y;
+    sunPos = vec2(sunPos.x * aspectRatio, sunPos.y);
 
-    vec2 sunPos = vec2(0.5,0.5);
-    sunPos.y *= (sin(iTime * sunSpeed));
-    vec3 sunColor = vec3(1.0 + 0.5*sin(iTime * sunSpeed),1.0+0.5*cos(iTime * sunSpeed),0);
+    float sun = distance(_UV, sunPos);
+    sun = smoothstep(sunRadius - smoothing, sunRadius + smoothing, sun);
+    
+    vec3 sunColor = mix(_SunSettingColor, _SunRisingColor, sunPos.y);
+    
+    // Hill objects
+    float h = hillHeight + sin(_UV.x * hillFrequency + _HillSpeed * _Time) * hillGrade;
+    h = smoothstep (h, h, _UV.y);
+    float h2 = hillHeight - 0.05 + sin(_UV.x * hillFrequency + _HillSpeed * _Time) * hillGrade;
+    h2 = smoothstep (h2, h2, _UV.y);
+    
+    vec3 hillGrassColor = _HillGrassColor * sunPos.y;
+    vec3 hill2Color = _Hill2Color * sunPos.y;
+    
+    // Stripes objects
+    float stripes = mod(floor(UV.x * 8.0 + _StripesSpeed * _Time), 2.0);
+    stripes = smoothstep (stripes, stripes, _UV.y);
 
-    vec3 hillGrassColor = vec3(0.0,1.0,0.0);
-    vec3 hill2Color = vec3(0.9,0.5,0.0);
+    vec3 stripesColor = _StripesColor * sunPos.y;
 
-    vec2 uv = fragCoord/iResolution.xy;uv.y *= iResolution.y/iResolution.x;
+    // BG objects
+    vec3 BGColor = mix(_BGBottomColor, _BGTopColor, _UV.y);
+    BGColor *= sunPos.y + brightness;
 
-    vec2 sunBlurPos = vec2(0.5,0.5);
-    sunBlurPos.y *= (sin(iTime * sunSpeed));
-    float sunBlur = circleSDF(uv-sunBlurPos,radius);
-
-    vec3 stripesColor = vec3(0.5,0.5,0.5);
-
-    vec3 BGColor = mix(vec3(0.0+sin(iTime * sunSpeed),0.0+sin(iTime * sunSpeed),0.0),vec3(0.9,0.0,0.5),uv.y);
-    vec4 BGLayer = vec4(BGColor,1.0);
-
-    vec4 sunLayer = vec4(sunColor,1.0-step(radius,length(sunPos-uv)));
-    vec4 sunBlurLayer = vec4(sunColor,1.0-smoothstep(-0.05,0.05,sunBlur));
-    vec4 hillLayer = vec4(hillGrassColor,1.0-step(sin(uv.x*5.0+iTime)*0.2+0.2,uv.y));
-    vec4 hill2Layer = vec4(hill2Color,1.0-step(sin(uv.x*5.0+iTime)*0.2+0.15,uv.y));
-    vec4 stripesLayer = vec4(stripesColor,1.0-mod(floor(uv.x*8.0+iTime),4.0));
-
-    vec4 allLayers = mix(BGLayer,sunLayer,sunLayer.a);
-    allLayers = mix(allLayers,sunBlurLayer,sunBlurLayer.a);
-    allLayers = mix(allLayers,stripesLayer,stripesLayer.a);
-    allLayers = mix(allLayers,hillLayer,hillLayer.a);
-    allLayers = mix(allLayers,hill2Layer,hill2Layer.a);
-    fragColor=allLayers;
+    // Output to screen
+    //vec3 color = mix(sunColor, BGColor, sun);
+    vec3 color = mix(stripesColor, BGColor, stripes);
+    color = mix(sunColor, color, sun);
+    color = mix(hillGrassColor, color, h);
+    color = mix(hill2Color, color, h2);
+    FragColor = vec4(color,1.0);
 }
