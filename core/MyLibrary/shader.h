@@ -1,10 +1,18 @@
-#pragma once
-#include <sstream>
-#include <fstream>
-namespace MyLibrary {
-	std::string loadShaderSourceFromFile(const std::string& filePath);
+#ifndef SHADER_H
+#define SHADER_H
+#include "../ew/external/glad.h"
+#include <string>
 
-	class Shader {
+namespace MyLibrary {
+
+	struct Vertex
+	{
+		float x, y, z;
+		float u, v;
+	};
+
+	class Shader
+	{
 	public:
 		Shader(const std::string& vertexShader, const std::string& fragmentShader);
 		void use();
@@ -16,4 +24,11 @@ namespace MyLibrary {
 	private:
 		unsigned int m_id;
 	};
+
+	std::string loadShaderSourceFromFile(const std::string& filePath);
+	unsigned int createShader(GLenum shaderType, const char* sourceCode);
+	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource);
+	unsigned int createVAO(Vertex* vertexData, int numVertices, unsigned int* indicesData, int numIndices);
 }
+
+#endif
