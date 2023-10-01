@@ -4,6 +4,7 @@ in vec2 UV;
 
 uniform sampler2D _Texture;
 
-void main(){
+void main()
+{
 	FragColor = vec4(UV.x,UV.y,0.0,1.0);
 }

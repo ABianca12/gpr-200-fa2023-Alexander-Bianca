@@ -8,7 +8,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <ew/shader.h>
+#include <MyLibrary/shader.h>
+#include <MyLibrary/texture.h>
 
 struct Vertex {
 	float x, y, z;
@@ -27,10 +28,15 @@ Vertex vertices[4] = {
 	{1.0, 1.0, 0.0, 1.0, 1.0},
 	{-1.0, 1.0, 0.0, 0.0, 1.0}
 };
+
 unsigned short indices[6] = {
 	0, 1, 2,
 	2, 3, 0
 };
+
+float speed = 1.0f;
+
+float distortion = 0.05f;
 
 int main() {
 	printf("Initializing...");
@@ -58,7 +64,24 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	ew::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
+	MyLibrary::Shader backgroundShader("assets/background.vert", "assets/background.frag");
+	MyLibrary::Shader characterShader("assets/character.vert", "assets/character.frag");
+
+	unsigned int noisePatternTexture = MyLibrary::loadTexture("assets/whiteNoiseDithering.png", GL_REPEAT, GL_LINEAR);
+	unsigned int backgroundTexture = MyLibrary::loadTexture("assets/persona5Background.png", GL_REPEAT, GL_LINEAR);
+	unsigned int characterTexture = MyLibrary::loadTexture("assets/littleGuy.png", GL_CLAMP_TO_BORDER, GL_NEAREST);
+	
+	// Put the noise pattern texture in unit 0
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, noisePatternTexture);
+
+	// Put the background texture in unit 1
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+
+	// Put the character texture in unit 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, characterTexture);
 
 	unsigned int quadVAO = createVAO(vertices, 4, indices, 6);
 
@@ -68,9 +91,36 @@ int main() {
 		glfwPollEvents();
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		//Set uniforms
-		shader.use();
+		float time = (float)glfwGetTime();
+
+		// Create background
+		backgroundShader.use();
+
+		// Sample unit 1 and 0
+		backgroundShader.setInt("_NoisePatternTexture", 0);
+		backgroundShader.setInt("_Texture", 1);
+
+		// Set speed and time
+		backgroundShader.setFloat("_Speed", speed);
+		backgroundShader.setFloat("_Time", time);
+
+		// Set distortion
+		backgroundShader.setFloat("_Distortion", distortion);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+
+		// Create character
+		characterShader.use();
+
+		// Sample unit 2
+		characterShader.setInt("_Texture", 2);
+
+		// Set speed and time
+		characterShader.setFloat("_Speed", speed);
+		characterShader.setFloat("_Time", time);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 
