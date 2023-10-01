@@ -8,7 +8,7 @@ namespace MyLibrary {
 		stbi_set_flip_vertically_on_load(true);
 
 		int width, height, numComponents;
-		unsigned char* data = stbi_load(filePath, &width, &height, &numComponents, 0);
+		unsigned char* data = stbi_load(filePath, &width, &height, &numComponents, 4);
 
 		if (data == NULL)
 		{

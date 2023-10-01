@@ -3,7 +3,7 @@ out vec4 FragColor;
 in vec2 UV;
 
 uniform float _Time;
-uniform float _TimeSpeed;
+uniform float _Speed;
 
 uniform float _Distortion;
 
@@ -12,7 +12,7 @@ uniform sampler2D _NoiseTexture;
 
 void main()
 {
-	vec2 noiseVec = vec2(UV.x + (_Time * _TimeSpeed), UV.y);
+	vec2 noiseVec = vec2(UV.x + (_Time * _Speed), UV.y);
 
 	float noise = texture(_NoiseTexture, noiseVec).r;
 

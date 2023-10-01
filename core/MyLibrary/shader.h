@@ -3,7 +3,8 @@
 #include "../ew/external/glad.h"
 #include <string>
 
-namespace MyLibrary {
+namespace MyLibrary
+{
 
 	struct Vertex
 	{

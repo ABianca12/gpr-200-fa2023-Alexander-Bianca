@@ -34,9 +34,9 @@ unsigned short indices[6] = {
 	2, 3, 0
 };
 
-float speed = 1.0f;
+float speed = 2.0f;
 
-float distortion = 0.05f;
+float distortion = 0.1f;
 
 int main() {
 	printf("Initializing...");
@@ -67,7 +67,7 @@ int main() {
 	MyLibrary::Shader backgroundShader("assets/background.vert", "assets/background.frag");
 	MyLibrary::Shader characterShader("assets/character.vert", "assets/character.frag");
 
-	unsigned int noisePatternTexture = MyLibrary::loadTexture("assets/whiteNoiseDithering.png", GL_REPEAT, GL_LINEAR);
+	unsigned int noisePatternTexture = MyLibrary::loadTexture("assets/WhiteNoiseDithering.png", GL_REPEAT, GL_LINEAR);
 	unsigned int backgroundTexture = MyLibrary::loadTexture("assets/persona5Background.png", GL_REPEAT, GL_LINEAR);
 	unsigned int characterTexture = MyLibrary::loadTexture("assets/littleGuy.png", GL_CLAMP_TO_BORDER, GL_NEAREST);
 	
@@ -131,6 +131,18 @@ int main() {
 			ImGui::NewFrame();
 
 			ImGui::Begin("Settings");
+			if (ImGui::CollapsingHeader("Speed Settings"))
+			{
+				// Speed control
+				ImGui::SliderFloat("Character Speed", &speed, 0.0f, 8.0f);
+			}
+
+			if (ImGui::CollapsingHeader("Distortion Settings"))
+			{
+				// Distortion control
+				ImGui::SliderFloat("Distortion", &distortion, 0.0f, 0.5f);
+			}
+
 			ImGui::End();
 
 			ImGui::Render();
