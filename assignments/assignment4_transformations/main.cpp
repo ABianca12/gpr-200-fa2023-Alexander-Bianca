@@ -11,6 +11,7 @@
 #include <ew/shader.h>
 #include <ew/ewMath/vec3.h>
 #include <ew/procGen.h>
+#include <MyLibrary/transformations.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
@@ -65,6 +66,7 @@ int main() {
 		//Set uniforms
 		shader.use();
 
+		shader.setMat4("_Model", MyLibrary::Transform.getModeMatrix());
 		//TODO: Set model matrix uniform
 
 		cubeMesh.draw();
@@ -76,6 +78,9 @@ int main() {
 			ImGui::NewFrame();
 
 			ImGui::Begin("Transform");
+			ImGui::DragFloat3("Position", &cubeTransform.position.x, 0.05f);
+			ImGui::DragFloat3("Rotation", &cubeTransform.rotation.x, 1.0f);
+			ImGui::DragFloat3("Scale", &cubeTransform.scale.x, 0.05f);
 			ImGui::End();
 
 			ImGui::Render();
