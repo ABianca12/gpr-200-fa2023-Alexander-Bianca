@@ -18,6 +18,10 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 //Square aspect ratio for now. We will account for this with projection later.
 const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 720;
+const int NUMOFCUBES = 4;
+
+MyLibrary::Transform cubeTransformations[NUMOFCUBES];
+ew::Vec3 rotationInDegrees = ew::Vec3(0.0f, 0.0f, 0.0f);
 
 int main() {
 	printf("Initializing...");
@@ -56,6 +60,10 @@ int main() {
 	
 	//Cube mesh
 	ew::Mesh cubeMesh(ew::createCube(0.5f));
+	cubeTransformations[0].position = ew::Vec3(0.5, 0.5);
+	cubeTransformations[1].position = ew::Vec3(0.5, -0.5);
+	cubeTransformations[2].position = ew::Vec3(-0.5, 0.5);
+	cubeTransformations[3].position = ew::Vec3(-0.5, -0.5);
 	
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -64,24 +72,30 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Set uniforms
-		shader.use();
-
-		shader.setMat4("_Model", MyLibrary::Transform.getModeMatrix());
-		//TODO: Set model matrix uniform
-
-		cubeMesh.draw();
-
-		//Render UI
+		for (size_t i = 0; i < NUMOFCUBES; i++)
 		{
+			shader.use();
+			shader.setMat4("_Model", cubeTransformations[i].getModelMatrix());
+			cubeMesh.draw();
+
+			//Render UI
 			ImGui_ImplGlfw_NewFrame();
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui::NewFrame();
 
-			ImGui::Begin("Transform");
-			ImGui::DragFloat3("Position", &cubeTransform.position.x, 0.05f);
-			ImGui::DragFloat3("Rotation", &cubeTransform.rotation.x, 1.0f);
-			ImGui::DragFloat3("Scale", &cubeTransform.scale.x, 0.05f);
-			ImGui::End();
+			for (size_t i = 0; i < NUMOFCUBES; i++)
+			{
+				ImGui::PushID(i);
+
+				if (ImGui::CollapsingHeader("Transformations"))
+				{
+					ImGui::DragFloat3("Position", &cubeTransformations[i].position.x, 0.05f);
+					ImGui::DragFloat3("Rotation", &cubeTransformations[i].rotation.x, 1.0f);
+					ImGui::DragFloat3("Scale", &cubeTransformations[i].scale.x, 0.05f);
+				}
+				
+				ImGui::PopID();
+			}
 
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
