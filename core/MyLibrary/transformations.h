@@ -80,4 +80,19 @@ namespace MyLibrary
 			return Translate(position) * RotateY(rotation.y * ew::DEG2RAD) * RotateX(rotation.x * ew::DEG2RAD) * RotateZ(rotation.z * ew::DEG2RAD) * Scale(scale);
 		}
 	};
+
+	inline ew::Mat4 LookAt(ew::Vec3 eye, ew::Vec3 target, ew::Vec3 up)
+	{
+
+	}
+
+	inline ew::Mat4 Orthographic(float height, float aspect, float near, float far)
+	{
+
+	}
+
+	inline ew::Mat4 Perspective(float fov, float aspect, float near, float far)
+	{
+
+	}
 }

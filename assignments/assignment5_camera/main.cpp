@@ -11,6 +11,7 @@
 #include <ew/shader.h>
 #include <ew/procGen.h>
 #include <ew/transform.h>
+#include <MyLibrary/camera.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
@@ -66,6 +67,9 @@ int main() {
 		cubeTransforms[i].position.y = i / (NUM_CUBES / 2) - 0.5;
 	}
 
+	MyLibrary::Camera camera;
+	MyLibrary::CameraControls cameraControls;
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
@@ -82,6 +86,8 @@ int main() {
 			shader.setMat4("_Model", cubeTransforms[i].getModelMatrix());
 			cubeMesh.draw();
 		}
+
+		void moveCamera(GLFWwindow* window, Camera* camera, CameraControls* controls)
 
 		//Render UI
 		{
