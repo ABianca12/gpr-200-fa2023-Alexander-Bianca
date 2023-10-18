@@ -14,14 +14,21 @@
 #include <MyLibrary/transformations.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void moveCamera(GLFWwindow* window, MyLibrary::Camera* camera, MyLibrary::CameraControls* controls);
 
 //Square aspect ratio for now. We will account for this with projection later.
 const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 720;
+
+int resolution[2] = { SCREEN_WIDTH, SCREEN_HEIGHT };
+
 const int NUMOFCUBES = 4;
 
 MyLibrary::Transform cubeTransformations[NUMOFCUBES];
 ew::Vec3 rotationInDegrees = ew::Vec3(0.0f, 0.0f, 0.0f);
+
+MyLibrary::Camera cam;
+MyLibrary::CameraControls cameraControl;
 
 int main() {
 	printf("Initializing...");
