@@ -14,6 +14,7 @@
 #include <ew/transform.h>
 #include <ew/camera.h>
 #include <ew/cameraController.h>
+#include <MyLibrary/procGen.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
@@ -78,14 +79,17 @@ int main() {
 	ew::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
 	unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
 
-	//Create cube
-	ew::MeshData cubeMeshData = ew::createCube(0.5f);
-	ew::Mesh cubeMesh(cubeMeshData);
+	MyLibrary::Cube cube;
+	MyLibrary::Plane plane;
+	MyLibrary::Cylinder cylinder;
+	MyLibrary::Sphere sphere;
 
-	//Initialize transforms
-	ew::Transform cubeTransform;
+	cube.transform.position = ew::Vec3(-2, 0, 0);
+	plane.transform.position = ew::Vec3(2, 0, 0);
+	cylinder.transform.position = ew::Vec3(4, 0, 0);
+	sphere.transform.position = ew::Vec3(-4, 1, 0);
 
-	resetCamera(camera,cameraController);
+	resetCamera(camera, cameraController);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -117,9 +121,17 @@ int main() {
 		ew::Vec3 lightF = ew::Vec3(sinf(lightRot.y) * cosf(lightRot.x), sinf(lightRot.x), -cosf(lightRot.y) * cosf(lightRot.x));
 		shader.setVec3("_LightDir", lightF);
 
-		//Draw cube
-		shader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+		shader.setMat4("_Model", cube.transform.getModelMatrix());
+		cube.getMesh().draw((ew::DrawMode)appSettings.drawAsPoints);
+
+		shader.setMat4("_Model", plane.transform.getModelMatrix());
+		plane.getMesh().draw((ew::DrawMode)appSettings.drawAsPoints);
+		
+		shader.setMat4("_Model", cylinder.transform.getModelMatrix());
+		cylinder.getMesh().draw((ew::DrawMode)appSettings.drawAsPoints);
+		
+		shader.setMat4("_Model", sphere.transform.getModelMatrix());
+		sphere.getMesh().draw((ew::DrawMode)appSettings.drawAsPoints);
 
 		//Render UI
 		{
@@ -147,22 +159,62 @@ int main() {
 				}
 			}
 
-			ImGui::ColorEdit3("BG color", &appSettings.bgColor.x);
-			ImGui::ColorEdit3("Shape color", &appSettings.shapeColor.x);
-			ImGui::Combo("Shading mode", &appSettings.shadingModeIndex, appSettings.shadingModeNames, IM_ARRAYSIZE(appSettings.shadingModeNames));
-			if (appSettings.shadingModeIndex > 3) {
-				ImGui::DragFloat3("Light Rotation", &appSettings.lightRotation.x, 1.0f);
+			if (ImGui::CollapsingHeader("Rendering Settings"))
+			{
+				ImGui::ColorEdit3("BG color", &appSettings.bgColor.x);
+				ImGui::ColorEdit3("Shape color", &appSettings.shapeColor.x);
+				ImGui::Combo("Shading mode", &appSettings.shadingModeIndex, appSettings.shadingModeNames, IM_ARRAYSIZE(appSettings.shadingModeNames));
+				if (appSettings.shadingModeIndex > 3) {
+					ImGui::DragFloat3("Light Rotation", &appSettings.lightRotation.x, 1.0f);
+				}
+				ImGui::Checkbox("Draw as points", &appSettings.drawAsPoints);
+				if (ImGui::Checkbox("Wireframe", &appSettings.wireframe)) {
+					glPolygonMode(GL_FRONT_AND_BACK, appSettings.wireframe ? GL_LINE : GL_FILL);
+				}
+				if (ImGui::Checkbox("Back-face culling", &appSettings.backFaceCulling)) {
+					if (appSettings.backFaceCulling)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+				}
 			}
-			ImGui::Checkbox("Draw as points", &appSettings.drawAsPoints);
-			if (ImGui::Checkbox("Wireframe", &appSettings.wireframe)) {
-				glPolygonMode(GL_FRONT_AND_BACK, appSettings.wireframe ? GL_LINE : GL_FILL);
+
+			if (ImGui::CollapsingHeader("Edit Cube"))
+			{
+				ImGui::PushID(0);
+				ImGui::DragFloat3("Position", &cube.transform.position.x, 0.1f);
+				ImGui::DragFloat("Scale", &cube.size, 0.05);
+				ImGui::PopID();
 			}
-			if (ImGui::Checkbox("Back-face culling", &appSettings.backFaceCulling)) {
-				if (appSettings.backFaceCulling)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
+			
+			if (ImGui::CollapsingHeader("Edit Plane"))
+			{
+				ImGui::PushID(1);
+				ImGui::DragFloat3("Position", &plane.transform.position.x, 0.1f);
+				ImGui::DragFloat("Scale", &plane.size, 0.05);
+				ImGui::DragInt("SubDivisions", &plane.subDivisions, 1, 3, 100);
+				ImGui::PopID();
 			}
+
+			if (ImGui::CollapsingHeader("Edit Cylinder"))
+			{
+				ImGui::PushID(2);
+				ImGui::DragFloat3("Position", &cylinder.transform.position.x, 0.1f);
+				ImGui::DragFloat("Height", &cylinder.height, 0.05);
+				ImGui::DragFloat("Radius", &cylinder.radius, 0.05);
+				ImGui::DragInt("SubDivisions", &cylinder.subDivisions, 1, 3, 100);
+				ImGui::PopID();
+			}
+			
+			if (ImGui::CollapsingHeader("Edit Sphere"))
+			{
+				ImGui::PushID(3);
+				ImGui::DragFloat3("Position", &sphere.transform.position.x, 0.1f);
+				ImGui::DragFloat("Scale", &sphere.radius, 0.05);
+				ImGui::DragInt("SubDivisions", &sphere.subDivisions, 1, 3, 100);
+				ImGui::PopID();
+			}
+
 			ImGui::End();
 			
 			ImGui::Render();
